@@ -1,0 +1,8 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+road_reports.db
+reports/
+Dataset/
+.streamlit/secrets.toml
