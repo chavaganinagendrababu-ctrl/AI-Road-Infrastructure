@@ -1,11 +1,13 @@
-import sqlite3
+import os
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 
 # ============================================================
 # DATABASE CONFIGURATION
 # ============================================================
 
-DATABASE_NAME = "road_reports.db"
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 
 # ============================================================
@@ -14,13 +16,19 @@ DATABASE_NAME = "road_reports.db"
 
 def get_connection():
 
-    return sqlite3.connect(
-        DATABASE_NAME
+    if not DATABASE_URL:
+
+        raise RuntimeError(
+            "DATABASE_URL environment variable is not configured."
+        )
+
+    return psycopg2.connect(
+        DATABASE_URL
     )
 
 
 # ============================================================
-# CREATE DATABASE
+# CREATE DATABASE TABLE
 # ============================================================
 
 def create_database():
@@ -62,6 +70,8 @@ def create_database():
     """)
 
     connection.commit()
+
+    cursor.close()
 
     connection.close()
 
@@ -107,7 +117,21 @@ def save_report(
             pdf_path
         )
 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (
+            %s,
+            %s,
+            %s,
+            %s,
+            %s,
+            %s,
+            %s,
+            %s,
+            %s,
+            %s,
+            %s,
+            %s,
+            %s
+        )
     """, (
         report_id,
         issue,
@@ -126,6 +150,8 @@ def save_report(
 
     connection.commit()
 
+    cursor.close()
+
     connection.close()
 
 
@@ -137,9 +163,9 @@ def get_all_reports():
 
     connection = get_connection()
 
-    connection.row_factory = sqlite3.Row
-
-    cursor = connection.cursor()
+    cursor = connection.cursor(
+        cursor_factory=RealDictCursor
+    )
 
     cursor.execute("""
         SELECT
@@ -157,10 +183,12 @@ def get_all_reports():
             image_path,
             pdf_path
         FROM reports
-        ORDER BY rowid DESC
+        ORDER BY reported_date DESC, reported_time DESC
     """)
 
     rows = cursor.fetchall()
+
+    cursor.close()
 
     connection.close()
 
@@ -194,8 +222,8 @@ def update_report_status(
 
     cursor.execute("""
         UPDATE reports
-        SET status = ?
-        WHERE report_id = ?
+        SET status = %s
+        WHERE report_id = %s
     """, (
         status,
         report_id
@@ -204,6 +232,8 @@ def update_report_status(
     connection.commit()
 
     updated_rows = cursor.rowcount
+
+    cursor.close()
 
     connection.close()
 
