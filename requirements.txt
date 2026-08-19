@@ -1,10 +1,4 @@
-tensorflow==2.21.0
 streamlit==1.61.1
-numpy
-pillow
 pandas
-reportlab
-fastapi
-uvicorn
-python-multipart
 requests
+pillow
