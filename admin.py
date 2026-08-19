@@ -87,6 +87,18 @@ if not st.session_state.admin_logged_in:
 
     st.stop()
 
+    # ============================================================
+# LOGOUT
+# ============================================================
+
+if st.session_state.admin_logged_in:
+
+    if st.sidebar.button("Logout"):
+
+        st.session_state.admin_logged_in = False
+
+        st.rerun()
+
 
 # ============================================================
 # BACKEND HEALTH CHECK
