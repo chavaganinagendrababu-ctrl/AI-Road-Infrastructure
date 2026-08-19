@@ -8,7 +8,6 @@ from PIL import Image
 # ============================================================
 
 API_BASE_URL = "https://ai-road-infrastructure.onrender.com"
-
 REPORT_API_URL = f"{API_BASE_URL}/reports"
 
 HEALTH_API_URL = f"{API_BASE_URL}/health"
@@ -30,6 +29,7 @@ st.set_page_config(
 # ============================================================
 
 if "clear_upload" not in st.session_state:
+
     st.session_state.clear_upload = 0
 
 
@@ -196,7 +196,6 @@ if uploaded_file is not None:
     # ========================================================
 
     if analyze:
-
 
         # ----------------------------------------------------
         # BACKEND CHECK
@@ -480,6 +479,10 @@ if uploaded_file is not None:
             f"{description if description else 'Not provided'}"
         )
 
+
+        # ====================================================
+        # TIME
+        # ====================================================
 
         st.write(
             f"Reported: "
