@@ -13,25 +13,14 @@ import numpy as np
 import tensorflow as tf
 from PIL import Image
 
-try:
-    tf.config.set_visible_devices([], "GPU")
-except RuntimeError:
-    pass
-
 
 # ============================================================
 # DISABLE GPU EXPLICITLY
 # ============================================================
 
 try:
-
-    tf.config.set_visible_devices(
-        [],
-        "GPU"
-    )
-
+    tf.config.set_visible_devices([], "GPU")
 except RuntimeError:
-
     pass
 
 
@@ -64,7 +53,7 @@ CLASS_NAMES = [
 
 
 # ============================================================
-# LOAD MODEL
+# MODEL
 # ============================================================
 
 _model = None
@@ -92,9 +81,7 @@ def get_model():
 
 def predict_image(image):
 
-    image = image.convert(
-        "RGB"
-    )
+    image = image.convert("RGB")
 
     image = image.resize(
         (224, 224)
@@ -111,7 +98,9 @@ def predict_image(image):
         axis=0
     )
 
-    predictions = get_model().predict(
+    model = get_model()
+
+    predictions = model.predict(
         image_array,
         verbose=0
     )[0]
