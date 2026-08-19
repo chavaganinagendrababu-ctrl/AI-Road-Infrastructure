@@ -6,11 +6,28 @@ import os
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "false"
 
 
 import numpy as np
 import tensorflow as tf
 from PIL import Image
+
+
+# ============================================================
+# DISABLE GPU EXPLICITLY
+# ============================================================
+
+try:
+
+    tf.config.set_visible_devices(
+        [],
+        "GPU"
+    )
+
+except RuntimeError:
+
+    pass
 
 
 # ============================================================
@@ -56,14 +73,18 @@ model = tf.keras.models.load_model(
 
 def predict_image(image):
 
-    image = image.convert("RGB")
+    image = image.convert(
+        "RGB"
+    )
 
     image = image.resize(
         (224, 224)
     )
 
-    image_array = tf.keras.preprocessing.image.img_to_array(
-        image
+    image_array = (
+        tf.keras.preprocessing
+        .image
+        .img_to_array(image)
     )
 
     image_array = np.expand_dims(
@@ -84,14 +105,20 @@ def predict_image(image):
         predicted_index
     ]
 
-    confidence = float(
-        predictions[predicted_index]
-    ) * 100
+    confidence = (
+        float(
+            predictions[
+                predicted_index
+            ]
+        ) * 100
+    )
 
     probabilities = {
 
         CLASS_NAMES[i]:
-            float(predictions[i]) * 100
+            float(
+                predictions[i]
+            ) * 100
 
         for i in range(
             len(CLASS_NAMES)
@@ -115,14 +142,21 @@ def get_severity(
 
     if predicted_class == "Large pothole":
 
-        return "Major", "High"
-
+        return (
+            "Major",
+            "High"
+        )
 
     elif predicted_class == "Small pothole":
 
-        return "Minor", "Medium"
-
+        return (
+            "Minor",
+            "Medium"
+        )
 
     else:
 
-        return "No damage", "None"
+        return (
+            "No damage",
+            "None"
+        )
