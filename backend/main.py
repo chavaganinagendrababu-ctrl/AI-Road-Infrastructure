@@ -1,30 +1,6 @@
 import os
 
 # ============================================================
-# TENSORFLOW CPU CONFIGURATION
-# ============================================================
-
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-os.environ["TF_XLA_FLAGS"] = "--tf_xla_enable_xla_devices=false"
-
-
-# ============================================================
-# TENSORFLOW RUNTIME TEST
-# ============================================================
-
-import tensorflow as tf
-
-print("========================================")
-print("TensorFlow version:", tf.__version__)
-print(
-    "TensorFlow devices:",
-    tf.config.list_physical_devices()
-)
-print("========================================")
-
-
-# ============================================================
 # FASTAPI
 # ============================================================
 
@@ -49,12 +25,10 @@ from zoneinfo import ZoneInfo
 
 # ============================================================
 # AI PREDICTION
+# TEMPORARILY DISABLED FOR RENDER DIAGNOSTIC TEST
 # ============================================================
 
-from utils.prediction import (
-    predict_image,
-    get_severity
-)
+from utils.prediction import get_severity
 
 
 # ============================================================
@@ -142,6 +116,7 @@ def get_india_time():
 
 # ============================================================
 # PREDICT ROAD DAMAGE
+# TEMPORARY TEST VERSION
 # ============================================================
 
 @app.post("/predict")
@@ -157,9 +132,18 @@ async def predict(
             io.BytesIO(image_bytes)
         ).convert("RGB")
 
-        predicted_class, confidence, probabilities = predict_image(
-            image
-        )
+        # ----------------------------------------------------
+        # TEMPORARY TEST
+        # TensorFlow prediction disabled
+        # ----------------------------------------------------
+
+        predicted_class = "Test"
+
+        confidence = 100.0
+
+        probabilities = {
+            "Test": 100.0
+        }
 
         severity, priority = get_severity(
             predicted_class
@@ -205,6 +189,7 @@ async def predict(
 
 # ============================================================
 # CREATE ROAD REPORT
+# TEMPORARY TEST VERSION
 # ============================================================
 
 @app.post("/reports")
@@ -227,13 +212,22 @@ async def create_report(
             io.BytesIO(image_bytes)
         ).convert("RGB")
 
-        predicted_class, confidence, _ = predict_image(
-            image
-        )
+        # ----------------------------------------------------
+        # TEMPORARY TEST
+        # TensorFlow prediction disabled
+        # ----------------------------------------------------
+
+        predicted_class = "Test"
+
+        confidence = 100.0
 
         severity, priority = get_severity(
             predicted_class
         )
+
+        # ----------------------------------------------------
+        # INDIA TIME
+        # ----------------------------------------------------
 
         current_time = get_india_time()
 
@@ -249,6 +243,10 @@ async def create_report(
             "%d-%m-%Y %I:%M:%S %p IST"
         )
 
+        # ----------------------------------------------------
+        # REPORT ID
+        # ----------------------------------------------------
+
         report_id = (
             "RI-"
             + current_time.strftime(
@@ -257,6 +255,10 @@ async def create_report(
             + "-"
             + uuid.uuid4().hex[:6].upper()
         )
+
+        # ----------------------------------------------------
+        # REPORT DIRECTORY
+        # ----------------------------------------------------
 
         report_directory = os.path.join(
             "reports",
@@ -268,6 +270,10 @@ async def create_report(
             exist_ok=True
         )
 
+        # ----------------------------------------------------
+        # SAVE IMAGE
+        # ----------------------------------------------------
+
         image_path = os.path.join(
             report_directory,
             "road_image.jpg"
@@ -278,6 +284,10 @@ async def create_report(
             format="JPEG",
             quality=90
         )
+
+        # ----------------------------------------------------
+        # GENERATE PDF
+        # ----------------------------------------------------
 
         pdf_path = generate_report_pdf(
 
@@ -305,6 +315,10 @@ async def create_report(
 
             image_path=image_path
         )
+
+        # ----------------------------------------------------
+        # SAVE DATABASE REPORT
+        # ----------------------------------------------------
 
         save_report(
 
@@ -334,6 +348,10 @@ async def create_report(
 
             pdf_path=pdf_path
         )
+
+        # ----------------------------------------------------
+        # RESPONSE
+        # ----------------------------------------------------
 
         return {
 
