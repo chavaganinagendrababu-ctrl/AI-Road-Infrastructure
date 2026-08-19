@@ -1,4 +1,4 @@
-tensorflow==2.21.0
+tensorflow==2.20.0
 numpy
 pillow
 fastapi
@@ -6,3 +6,4 @@ uvicorn
 python-multipart
 reportlab
 psycopg2-binary
+python-dotenv
