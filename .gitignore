@@ -6,3 +6,4 @@ road_reports.db
 reports/
 Dataset/
 .streamlit/secrets.toml
+.env

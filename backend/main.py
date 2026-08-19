@@ -1,3 +1,33 @@
+import os
+
+# ============================================================
+# TENSORFLOW CPU CONFIGURATION
+# ============================================================
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+os.environ["TF_XLA_FLAGS"] = "--tf_xla_enable_xla_devices=false"
+
+
+# ============================================================
+# TENSORFLOW RUNTIME TEST
+# ============================================================
+
+import tensorflow as tf
+
+print("========================================")
+print("TensorFlow version:", tf.__version__)
+print(
+    "TensorFlow devices:",
+    tf.config.list_physical_devices()
+)
+print("========================================")
+
+
+# ============================================================
+# FASTAPI
+# ============================================================
+
 from fastapi import (
     FastAPI,
     UploadFile,
@@ -11,16 +41,25 @@ from fastapi.responses import FileResponse
 from PIL import Image
 
 import io
-import os
 import uuid
 
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+
+# ============================================================
+# AI PREDICTION
+# ============================================================
+
 from utils.prediction import (
     predict_image,
     get_severity
 )
+
+
+# ============================================================
+# DATABASE
+# ============================================================
 
 from database import (
     create_database,
@@ -28,6 +67,11 @@ from database import (
     get_all_reports,
     update_report_status
 )
+
+
+# ============================================================
+# PDF REPORT
+# ============================================================
 
 from report_gen import (
     generate_report_pdf
@@ -177,20 +221,11 @@ async def create_report(
 
     try:
 
-        # ----------------------------------------------------
-        # READ IMAGE
-        # ----------------------------------------------------
-
         image_bytes = await file.read()
 
         image = Image.open(
             io.BytesIO(image_bytes)
         ).convert("RGB")
-
-
-        # ----------------------------------------------------
-        # AI PREDICTION
-        # ----------------------------------------------------
 
         predicted_class, confidence, _ = predict_image(
             image
@@ -199,11 +234,6 @@ async def create_report(
         severity, priority = get_severity(
             predicted_class
         )
-
-
-        # ----------------------------------------------------
-        # INDIA DATE AND TIME
-        # ----------------------------------------------------
 
         current_time = get_india_time()
 
@@ -219,11 +249,6 @@ async def create_report(
             "%d-%m-%Y %I:%M:%S %p IST"
         )
 
-
-        # ----------------------------------------------------
-        # REPORT ID
-        # ----------------------------------------------------
-
         report_id = (
             "RI-"
             + current_time.strftime(
@@ -232,11 +257,6 @@ async def create_report(
             + "-"
             + uuid.uuid4().hex[:6].upper()
         )
-
-
-        # ----------------------------------------------------
-        # REPORT DIRECTORY
-        # ----------------------------------------------------
 
         report_directory = os.path.join(
             "reports",
@@ -248,11 +268,6 @@ async def create_report(
             exist_ok=True
         )
 
-
-        # ----------------------------------------------------
-        # SAVE IMAGE
-        # ----------------------------------------------------
-
         image_path = os.path.join(
             report_directory,
             "road_image.jpg"
@@ -263,11 +278,6 @@ async def create_report(
             format="JPEG",
             quality=90
         )
-
-
-        # ----------------------------------------------------
-        # GENERATE PDF
-        # ----------------------------------------------------
 
         pdf_path = generate_report_pdf(
 
@@ -295,11 +305,6 @@ async def create_report(
 
             image_path=image_path
         )
-
-
-        # ----------------------------------------------------
-        # SAVE TO DATABASE
-        # ----------------------------------------------------
 
         save_report(
 
@@ -329,11 +334,6 @@ async def create_report(
 
             pdf_path=pdf_path
         )
-
-
-        # ----------------------------------------------------
-        # RESPONSE
-        # ----------------------------------------------------
 
         return {
 
@@ -379,7 +379,6 @@ async def create_report(
             "pdf_available":
                 True
         }
-
 
     except Exception as error:
 
@@ -435,7 +434,6 @@ def get_report_image(
 
                 break
 
-
         if selected_report is None:
 
             raise HTTPException(
@@ -443,11 +441,9 @@ def get_report_image(
                 detail="Report not found"
             )
 
-
         image_path = selected_report.get(
             "image_path"
         )
-
 
         if not image_path:
 
@@ -455,7 +451,6 @@ def get_report_image(
                 status_code=404,
                 detail="Road image not available"
             )
-
 
         if not os.path.exists(
             image_path
@@ -466,7 +461,6 @@ def get_report_image(
                 detail="Road image file not found"
             )
 
-
         return FileResponse(
 
             path=image_path,
@@ -474,11 +468,9 @@ def get_report_image(
             media_type="image/jpeg"
         )
 
-
     except HTTPException:
 
         raise
-
 
     except Exception as error:
 
@@ -509,7 +501,6 @@ def change_report_status(
         "Resolved"
     ]
 
-
     if status not in allowed_statuses:
 
         raise HTTPException(
@@ -523,7 +514,6 @@ def change_report_status(
             )
         )
 
-
     try:
 
         updated = update_report_status(
@@ -533,7 +523,6 @@ def change_report_status(
             status
         )
 
-
         if not updated:
 
             raise HTTPException(
@@ -542,7 +531,6 @@ def change_report_status(
 
                 detail="Report not found"
             )
-
 
         return {
 
@@ -556,11 +544,9 @@ def change_report_status(
                 status
         }
 
-
     except HTTPException:
 
         raise
-
 
     except Exception as error:
 
@@ -596,7 +582,6 @@ def download_report_pdf(
 
                 break
 
-
         if selected_report is None:
 
             raise HTTPException(
@@ -606,11 +591,9 @@ def download_report_pdf(
                 detail="Report not found"
             )
 
-
         pdf_path = selected_report.get(
             "pdf_path"
         )
-
 
         if not pdf_path:
 
@@ -620,7 +603,6 @@ def download_report_pdf(
 
                 detail="PDF report not available"
             )
-
 
         if not os.path.exists(
             pdf_path
@@ -633,7 +615,6 @@ def download_report_pdf(
                 detail="PDF file not found"
             )
 
-
         return FileResponse(
 
             path=pdf_path,
@@ -645,11 +626,9 @@ def download_report_pdf(
             )
         )
 
-
     except HTTPException:
 
         raise
-
 
     except Exception as error:
 
