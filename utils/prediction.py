@@ -1,7 +1,16 @@
 import os
 
+# ============================================================
+# FORCE TENSORFLOW TO USE CPU
+# ============================================================
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+
+
 import numpy as np
 import tensorflow as tf
+from PIL import Image
 
 
 # ============================================================
@@ -53,9 +62,8 @@ def predict_image(image):
         (224, 224)
     )
 
-    image_array = np.array(
-        image,
-        dtype=np.float32
+    image_array = tf.keras.preprocessing.image.img_to_array(
+        image
     )
 
     image_array = np.expand_dims(
