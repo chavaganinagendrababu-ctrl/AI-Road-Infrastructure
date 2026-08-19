@@ -6,12 +6,17 @@ import os
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "false"
+os.environ["TF_XLA_FLAGS"] = "--tf_xla_enable_xla_devices=false"
 
 
 import numpy as np
 import tensorflow as tf
 from PIL import Image
+
+try:
+    tf.config.set_visible_devices([], "GPU")
+except RuntimeError:
+    pass
 
 
 # ============================================================
@@ -62,9 +67,23 @@ CLASS_NAMES = [
 # LOAD MODEL
 # ============================================================
 
-model = tf.keras.models.load_model(
-    MODEL_PATH
-)
+_model = None
+
+
+def get_model():
+
+    global _model
+
+    if _model is None:
+
+        with tf.device("/CPU:0"):
+
+            _model = tf.keras.models.load_model(
+                MODEL_PATH,
+                compile=False
+            )
+
+    return _model
 
 
 # ============================================================
@@ -92,7 +111,7 @@ def predict_image(image):
         axis=0
     )
 
-    predictions = model.predict(
+    predictions = get_model().predict(
         image_array,
         verbose=0
     )[0]
