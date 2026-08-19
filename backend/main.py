@@ -32,7 +32,6 @@ from report_gen import (
 )
 
 
-
 # ============================================================
 # FASTAPI APPLICATION
 # ============================================================
@@ -102,34 +101,28 @@ async def predict(
 
         return {
 
-            "prediction":
-                predicted_class,
+            "prediction": predicted_class,
 
-            "confidence":
-                round(
-                    confidence,
-                    2
-                ),
+            "confidence": round(
+                confidence,
+                2
+            ),
 
-            "severity":
-                severity,
+            "severity": severity,
 
-            "priority":
-                priority,
+            "priority": priority,
 
             "probabilities": {
 
-                name:
-                    round(
-                        value,
-                        2
-                    )
+                name: round(
+                    value,
+                    2
+                )
 
                 for name, value
                 in probabilities.items()
             }
         }
-
 
     except Exception as error:
 
@@ -242,7 +235,7 @@ async def create_report(
 
 
         # ----------------------------------------------------
-        # GENERATE PDF
+        # GENERATE PDF REPORT
         # ----------------------------------------------------
 
         pdf_path = generate_report_pdf(
@@ -380,6 +373,105 @@ def get_reports():
             "reports": reports
         }
 
+    except Exception as error:
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(error)
+        )
+
+
+# ============================================================
+# GET REPORT IMAGE
+# ============================================================
+
+@app.get("/reports/{report_id}/image")
+def get_report_image(
+    report_id: str
+):
+
+    try:
+
+        # ----------------------------------------------------
+        # FIND REPORT
+        # ----------------------------------------------------
+
+        reports = get_all_reports()
+
+        selected_report = None
+
+        for report in reports:
+
+            if report["report_id"] == report_id:
+
+                selected_report = report
+
+                break
+
+
+        # ----------------------------------------------------
+        # REPORT NOT FOUND
+        # ----------------------------------------------------
+
+        if selected_report is None:
+
+            raise HTTPException(
+                status_code=404,
+                detail="Report not found"
+            )
+
+
+        # ----------------------------------------------------
+        # GET IMAGE PATH
+        # ----------------------------------------------------
+
+        image_path = selected_report.get(
+            "image_path"
+        )
+
+
+        # ----------------------------------------------------
+        # IMAGE PATH MISSING
+        # ----------------------------------------------------
+
+        if not image_path:
+
+            raise HTTPException(
+                status_code=404,
+                detail="Road image not available"
+            )
+
+
+        # ----------------------------------------------------
+        # IMAGE FILE MISSING
+        # ----------------------------------------------------
+
+        if not os.path.exists(
+            image_path
+        ):
+
+            raise HTTPException(
+                status_code=404,
+                detail="Road image file not found"
+            )
+
+
+        # ----------------------------------------------------
+        # RETURN IMAGE
+        # ----------------------------------------------------
+
+        return FileResponse(
+
+            path=image_path,
+
+            media_type="image/jpeg"
+        )
+
+
+    except HTTPException:
+
+        raise
+
 
     except Exception as error:
 
@@ -408,7 +500,6 @@ def change_report_status(
         "In Progress",
 
         "Resolved"
-
     ]
 
 
@@ -494,7 +585,6 @@ def download_report_pdf(
 
         selected_report = None
 
-
         for report in reports:
 
             if report["report_id"] == report_id:
@@ -545,7 +635,9 @@ def download_report_pdf(
         # PDF FILE MISSING
         # ----------------------------------------------------
 
-        if not os.path.exists(pdf_path):
+        if not os.path.exists(
+            pdf_path
+        ):
 
             raise HTTPException(
 

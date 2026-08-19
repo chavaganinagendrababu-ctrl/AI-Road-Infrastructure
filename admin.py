@@ -9,7 +9,7 @@ import streamlit as st
 # FASTAPI BACKEND
 # ============================================================
 
-API_BASE_URL = "http://127.0.0.1:8000"
+API_BASE_URL = "https://ai-road-infrastructure.onrender.com"
 
 REPORTS_API_URL = f"{API_BASE_URL}/reports"
 
@@ -459,26 +459,36 @@ st.subheader(
     "Road Image"
 )
 
+image_url = (
+    f"{API_BASE_URL}/reports/"
+    f"{selected_report}/image"
+)
 
-image_path = selected_row[
-    "Image Path"
-]
+try:
 
-
-if (
-    image_path
-    and os.path.exists(image_path)
-):
-
-    st.image(
-        image_path,
-        width=600
+    image_response = requests.get(
+        image_url,
+        timeout=30
     )
 
-else:
+    if image_response.status_code == 200:
 
-    st.warning(
-        "Road image not found."
+        st.image(
+            image_response.content,
+            caption="Reported Road Image",
+            width=600
+        )
+
+    else:
+
+        st.warning(
+            "Road image not found on the backend."
+        )
+
+except requests.exceptions.RequestException as error:
+
+    st.error(
+        f"Could not load road image: {error}"
     )
 
 

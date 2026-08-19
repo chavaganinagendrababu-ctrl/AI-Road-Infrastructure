@@ -7,7 +7,7 @@ from PIL import Image
 # FASTAPI BACKEND
 # ============================================================
 
-API_BASE_URL = "http://127.0.0.1:8000"
+API_BASE_URL = "https://ai-road-infrastructure.onrender.com"
 
 REPORT_API_URL = f"{API_BASE_URL}/reports"
 
