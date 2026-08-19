@@ -14,6 +14,7 @@ import io
 import os
 import uuid
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from utils.prediction import (
     predict_image,
@@ -178,7 +179,9 @@ async def create_report(
         # DATE AND TIME
         # ----------------------------------------------------
 
-        current_time = datetime.now()
+        current_time = datetime.now(
+            ZoneInfo("Asia/Kolkata")
+        )
 
         reported_date = current_time.strftime(
             "%d-%m-%Y"
