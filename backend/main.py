@@ -13,6 +13,7 @@ from PIL import Image
 import io
 import os
 import uuid
+
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -30,6 +31,15 @@ from database import (
 
 from report_gen import (
     generate_report_pdf
+)
+
+
+# ============================================================
+# TIMEZONE
+# ============================================================
+
+INDIA_TIMEZONE = ZoneInfo(
+    "Asia/Kolkata"
 )
 
 
@@ -76,6 +86,17 @@ def health_check():
 
 
 # ============================================================
+# CURRENT INDIA TIME
+# ============================================================
+
+def get_india_time():
+
+    return datetime.now(
+        INDIA_TIMEZONE
+    )
+
+
+# ============================================================
 # PREDICT ROAD DAMAGE
 # ============================================================
 
@@ -102,23 +123,28 @@ async def predict(
 
         return {
 
-            "prediction": predicted_class,
+            "prediction":
+                predicted_class,
 
-            "confidence": round(
-                confidence,
-                2
-            ),
+            "confidence":
+                round(
+                    confidence,
+                    2
+                ),
 
-            "severity": severity,
+            "severity":
+                severity,
 
-            "priority": priority,
+            "priority":
+                priority,
 
             "probabilities": {
 
-                name: round(
-                    value,
-                    2
-                )
+                name:
+                    round(
+                        value,
+                        2
+                    )
 
                 for name, value
                 in probabilities.items()
@@ -176,19 +202,21 @@ async def create_report(
 
 
         # ----------------------------------------------------
-        # DATE AND TIME
+        # INDIA DATE AND TIME
         # ----------------------------------------------------
 
-        current_time = datetime.now(
-            ZoneInfo("Asia/Kolkata")
-        )
+        current_time = get_india_time()
 
         reported_date = current_time.strftime(
             "%d-%m-%Y"
         )
 
         reported_time = current_time.strftime(
-            "%I:%M %p"
+            "%I:%M:%S %p"
+        )
+
+        reported_datetime = current_time.strftime(
+            "%d-%m-%Y %I:%M:%S %p IST"
         )
 
 
@@ -238,7 +266,7 @@ async def create_report(
 
 
         # ----------------------------------------------------
-        # GENERATE PDF REPORT
+        # GENERATE PDF
         # ----------------------------------------------------
 
         pdf_path = generate_report_pdf(
@@ -261,7 +289,7 @@ async def create_report(
 
             reported_date=reported_date,
 
-            reported_time=reported_time,
+            reported_time=reported_datetime,
 
             status="Reported",
 
@@ -270,7 +298,7 @@ async def create_report(
 
 
         # ----------------------------------------------------
-        # SAVE REPORT TO DATABASE
+        # SAVE TO DATABASE
         # ----------------------------------------------------
 
         save_report(
@@ -293,7 +321,7 @@ async def create_report(
 
             reported_date=reported_date,
 
-            reported_time=reported_time,
+            reported_time=reported_datetime,
 
             status="Reported",
 
@@ -343,7 +371,7 @@ async def create_report(
                 reported_date,
 
             "reported_time":
-                reported_time,
+                reported_datetime,
 
             "status":
                 "Reported",
@@ -395,10 +423,6 @@ def get_report_image(
 
     try:
 
-        # ----------------------------------------------------
-        # FIND REPORT
-        # ----------------------------------------------------
-
         reports = get_all_reports()
 
         selected_report = None
@@ -412,10 +436,6 @@ def get_report_image(
                 break
 
 
-        # ----------------------------------------------------
-        # REPORT NOT FOUND
-        # ----------------------------------------------------
-
         if selected_report is None:
 
             raise HTTPException(
@@ -424,18 +444,10 @@ def get_report_image(
             )
 
 
-        # ----------------------------------------------------
-        # GET IMAGE PATH
-        # ----------------------------------------------------
-
         image_path = selected_report.get(
             "image_path"
         )
 
-
-        # ----------------------------------------------------
-        # IMAGE PATH MISSING
-        # ----------------------------------------------------
 
         if not image_path:
 
@@ -444,10 +456,6 @@ def get_report_image(
                 detail="Road image not available"
             )
 
-
-        # ----------------------------------------------------
-        # IMAGE FILE MISSING
-        # ----------------------------------------------------
 
         if not os.path.exists(
             image_path
@@ -458,10 +466,6 @@ def get_report_image(
                 detail="Road image file not found"
             )
 
-
-        # ----------------------------------------------------
-        # RETURN IMAGE
-        # ----------------------------------------------------
 
         return FileResponse(
 
@@ -580,10 +584,6 @@ def download_report_pdf(
 
     try:
 
-        # ----------------------------------------------------
-        # FIND REPORT
-        # ----------------------------------------------------
-
         reports = get_all_reports()
 
         selected_report = None
@@ -597,10 +597,6 @@ def download_report_pdf(
                 break
 
 
-        # ----------------------------------------------------
-        # REPORT NOT FOUND
-        # ----------------------------------------------------
-
         if selected_report is None:
 
             raise HTTPException(
@@ -611,18 +607,10 @@ def download_report_pdf(
             )
 
 
-        # ----------------------------------------------------
-        # GET PDF PATH
-        # ----------------------------------------------------
-
         pdf_path = selected_report.get(
             "pdf_path"
         )
 
-
-        # ----------------------------------------------------
-        # PDF PATH MISSING
-        # ----------------------------------------------------
 
         if not pdf_path:
 
@@ -633,10 +621,6 @@ def download_report_pdf(
                 detail="PDF report not available"
             )
 
-
-        # ----------------------------------------------------
-        # PDF FILE MISSING
-        # ----------------------------------------------------
 
         if not os.path.exists(
             pdf_path
@@ -649,10 +633,6 @@ def download_report_pdf(
                 detail="PDF file not found"
             )
 
-
-        # ----------------------------------------------------
-        # RETURN PDF
-        # ----------------------------------------------------
 
         return FileResponse(
 
